@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.489
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MyRedBlackTree", "MyRedBlackTree\MyRedBlackTree.vcxproj", "{FFB176E1-E38F-48F2-93F5-8251A0F62542}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FFB176E1-E38F-48F2-93F5-8251A0F62542}.Debug|x64.ActiveCfg = Debug|x64
+		{FFB176E1-E38F-48F2-93F5-8251A0F62542}.Debug|x64.Build.0 = Debug|x64
+		{FFB176E1-E38F-48F2-93F5-8251A0F62542}.Debug|x86.ActiveCfg = Debug|Win32
+		{FFB176E1-E38F-48F2-93F5-8251A0F62542}.Debug|x86.Build.0 = Debug|Win32
+		{FFB176E1-E38F-48F2-93F5-8251A0F62542}.Release|x64.ActiveCfg = Release|x64
+		{FFB176E1-E38F-48F2-93F5-8251A0F62542}.Release|x64.Build.0 = Release|x64
+		{FFB176E1-E38F-48F2-93F5-8251A0F62542}.Release|x86.ActiveCfg = Release|Win32
+		{FFB176E1-E38F-48F2-93F5-8251A0F62542}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A1889F48-19DD-40C9-9932-B8385985EA58}
+	EndGlobalSection
+EndGlobal
