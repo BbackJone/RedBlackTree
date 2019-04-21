@@ -7,11 +7,11 @@ typedef RBTreeNodeHandler Handle;
 
 void Shownode(TData data, COLOR color)
 {
-	printf("°ª : %d,", data);
+	printf("Value : %d,", data);
 	if (color == black)
-		printf("»ö±ò : black\n");
+		printf("color : black\n");
 	else
-		printf("»ö±ò : red\n");
+		printf("color : red\n");
 }
 
 int main()
