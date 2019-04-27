@@ -21,6 +21,7 @@ public:
 	void DecreaseBH(RBnode* _node);
 	void DecreaseBH_DoubleRedCheck(TData delNodedata);
 	COLOR GetColor(RBnode* _node);
+	void ChangeColor(RBnode* _node, COLOR _color);
 
 	RBnode* GetRoot() { return root; }
 

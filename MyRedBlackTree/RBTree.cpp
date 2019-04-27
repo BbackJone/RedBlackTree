@@ -16,7 +16,7 @@ void RBTree::Insert(TData _data)
 
 	if (cur == nullptr)	//root is empty
 	{
-		newNode->color = black;
+		ChangeColor(newNode, black);
 		root = newNode;
 		Vroot->right = root;
 		root->parent = Vroot;
@@ -128,9 +128,9 @@ void RBTree::FixDoubleRed(RBnode * up, RBnode * down)
 void RBTree::Recoloring(RBnode * _node, RBnode * left, RBnode * right)
 {
 	if (root != _node)
-		_node->color = red;
-	_node->left->color = black;
-	_node->right->color = black;
+		ChangeColor(_node, red);
+	ChangeColor(_node->left, black);
+	ChangeColor(_node->right, black);
 
 	//Double-red recheck.
 	if (_node->parent->color == red)
@@ -149,8 +149,8 @@ void RBTree::RotateRight(RBnode * _node)
 	Handler::ChangeRightSubTree(A, B);
 	Handler::ChangeLeftSubTree(B, temp);
 
-	B->color = red;
-	A->color = black;
+	ChangeColor(B, red);
+	ChangeColor(A, black);
 
 	if (superNode->right == B)
 		Handler::ChangeRightSubTree(superNode, A);
@@ -180,8 +180,8 @@ void RBTree::RotateLeft(RBnode * _node)
 	Handler::ChangeLeftSubTree(A, B);
 	Handler::ChangeRightSubTree(B, temp);
 
-	B->color = red;
-	A->color = black;
+	ChangeColor(B, red);
+	ChangeColor(A, black);
 
 	if (superNode->right == B)
 		Handler::ChangeRightSubTree(superNode, A);
@@ -300,10 +300,10 @@ bool RBTree::Delete(TData _data)
 					RBTreeNodeHandler::ChangeRightSubTree(parent, succesor->left);
 				free(succesor);
 
-				parent->color = black;
+				ChangeColor(parent, black);
 				if (parent->left != nullptr)
 				{
-					parent->left->color = red;
+					ChangeColor(parent->left, red);
 					//Check double-red
 					if (parent->left->left != nullptr)
 					{
@@ -326,10 +326,10 @@ bool RBTree::Delete(TData _data)
 					RBTreeNodeHandler::ChangeLeftSubTree(parent, succesor->left);
 				free(succesor);
 
-				parent->color = black;
+				ChangeColor(parent, black);
 				if (parent->right != nullptr)
 				{
-					parent->right->color = red;
+					ChangeColor(parent->right, red);
 					//Check double-red
 					if (parent->right->right != nullptr)
 					{
@@ -361,7 +361,7 @@ bool RBTree::Delete(TData _data)
 					if (succesor->right->color == red)
 					{
 						RBTreeNodeHandler::ChangeRightSubTree(parent, succesor->right);
-						succesor->right->color = black;
+						ChangeColor(succesor->right, black);
 					}
 				}
 				else if (succesor->left != nullptr)
@@ -369,7 +369,7 @@ bool RBTree::Delete(TData _data)
 					if (succesor->left->color == red)
 					{
 						RBTreeNodeHandler::ChangeRightSubTree(parent, succesor->left);
-						succesor->left->color = black;
+						ChangeColor(succesor->left, black);
 					}
 				}
 				//if sibling is red
@@ -387,9 +387,9 @@ bool RBTree::Delete(TData _data)
 
 					RBTreeNodeHandler::ChangeRightSubTree(sibling, parent);
 					RBTreeNodeHandler::ChangeLeftSubTree(parent, sibright);
-					
-					sibling->color = black;
-					sibright->color = red;
+
+					ChangeColor(sibling, black);
+					ChangeColor(sibright, red);
 				}
 				else
 				{
@@ -411,7 +411,7 @@ bool RBTree::Delete(TData _data)
 							RBTreeNodeHandler::ChangeRightSubTree(sibling, parent);
 							RBTreeNodeHandler::ChangeLeftSubTree(parent, sibright);
 
-							sibleft->color = black;
+							ChangeColor(sibleft, black);
 						}
 						else if (GetColor(sibling->right) == red)	//triangle
 						{
@@ -420,8 +420,8 @@ bool RBTree::Delete(TData _data)
 							RBTreeNodeHandler::ChangeRightSubTree(sibling, A->left);
 							RBTreeNodeHandler::ChangeLeftSubTree(A, sibling);
 
-							A->color = black;
-							sibling->color = red;
+							ChangeColor(A, black);
+							ChangeColor(sibling, red);
 
 							//line
 							parent->right = nullptr;
@@ -437,7 +437,7 @@ bool RBTree::Delete(TData _data)
 							RBTreeNodeHandler::ChangeRightSubTree(A, parent);
 							RBTreeNodeHandler::ChangeLeftSubTree(parent, sibright);
 
-							sibleft->color = black;
+							ChangeColor(sibleft, black);
 						}
 						else
 							BH_Change = true;
@@ -477,7 +477,7 @@ bool RBTree::Delete(TData _data)
 					if (succesor->right->color == red)
 					{
 						RBTreeNodeHandler::ChangeLeftSubTree(parent, succesor->right);
-						succesor->right->color = black;
+						ChangeColor(succesor->right, black);
 					}
 				}
 				else if (succesor->left != nullptr)
@@ -485,7 +485,7 @@ bool RBTree::Delete(TData _data)
 					if (succesor->left->color == red)
 					{
 						RBTreeNodeHandler::ChangeLeftSubTree(parent, succesor->left);
-						succesor->left->color = black;
+						ChangeColor(succesor->left, black);
 					}
 				}
 				//if sibling is red
@@ -504,8 +504,8 @@ bool RBTree::Delete(TData _data)
 					RBTreeNodeHandler::ChangeLeftSubTree(sibling, parent);
 					RBTreeNodeHandler::ChangeRightSubTree(parent, sibleft);
 
-					sibling->color = black;
-					sibleft->color = red;
+					ChangeColor(sibling, black);
+					ChangeColor(sibleft, red);
 				}
 				else
 				{
@@ -527,7 +527,7 @@ bool RBTree::Delete(TData _data)
 							RBTreeNodeHandler::ChangeLeftSubTree(sibling, parent);
 							RBTreeNodeHandler::ChangeRightSubTree(parent, sibleft);
 
-							sibright->color = black;
+							ChangeColor(sibright, black);
 						}
 						else if (GetColor(sibling->left) == red)	//triangle
 						{
@@ -536,8 +536,8 @@ bool RBTree::Delete(TData _data)
 							RBTreeNodeHandler::ChangeLeftSubTree(sibling, A->right);
 							RBTreeNodeHandler::ChangeRightSubTree(A, sibling);
 
-							A->color = black;
-							sibling->color = red;
+							ChangeColor(A, black);
+							ChangeColor(sibling, red);
 
 							//line
 							parent->left = nullptr;
@@ -553,7 +553,7 @@ bool RBTree::Delete(TData _data)
 							RBTreeNodeHandler::ChangeLeftSubTree(A, parent);
 							RBTreeNodeHandler::ChangeRightSubTree(parent, sibleft);
 
-							sibright->color = black;
+							ChangeColor(sibright, black);
 						}
 						else
 							BH_Change = true;
@@ -603,7 +603,7 @@ void RBTree::DecreaseBH(RBnode * _node)
 		return;
 
 	if (_node->color == black)
-		_node->color = red;
+		ChangeColor(_node, red);
 	else		//if _node is already red, make its child nodes red.
 	{
 		DecreaseBH(_node->left);
@@ -714,6 +714,14 @@ COLOR RBTree::GetColor(RBnode * _node)
 		return black;
 	else
 		return _node->color;
+}
+
+void RBTree::ChangeColor(RBnode * _node, COLOR _color)
+{
+	if (_node == nullptr)
+		return;
+
+	_node->color = _color;
 }
 
 void RBTree::ShowTree()
