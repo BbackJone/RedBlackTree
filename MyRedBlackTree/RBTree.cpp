@@ -156,7 +156,7 @@ void RBTree::RotateRight(RBnode * _node)
 		Handler::ChangeRightSubTree(superNode, A);
 	else
 		Handler::ChangeLeftSubTree(superNode, A);
-
+	 
 	if (Vroot->right != root)
 		root = Vroot->right;
 
@@ -253,67 +253,52 @@ bool RBTree::Delete(TData _data)
 
 	delNode = cur;
 #pragma endregion
-#pragma region findTerminalnode
-	RBnode* terminalNode = delNode;		//node to remove actually.
-	//case 1. delNode has right sub tree
-	if (delNode->right != nullptr)
+#pragma region FindsuccesorNode
+	RBnode* succesor = delNode;		//node to remove actually.
+	//case 1. delNode has two child node.
+	if (succesor->right != nullptr && succesor->left != nullptr)
 	{
-		while (terminalNode->right != nullptr)
+		//find node that has smallest data in the right sub tree.
+		cur = cur->right;
+		while (cur->left != nullptr)
 		{
-			//find node that has smallest data in the right sub tree.
-			cur = cur->right;
-			while (cur->left != nullptr)
-			{
-				cur = cur->left;
-			}
-			terminalNode->data = cur->data;
-			terminalNode = cur;
-		}
-	}
-	//case 2. delNode has left sub tree
-	else if (delNode->left != nullptr)
-	{
-		while (terminalNode->left != nullptr)
-		{
-			//find node that has smallest data in the left sub tree.
 			cur = cur->left;
-			while (cur->right != nullptr)
-			{
-				cur = cur->right;
-			}
-			terminalNode->data = cur->data;
-			terminalNode = cur;
 		}
+		succesor->data = cur->data;
+		succesor = cur;
 	}
-	//case 3. delNode doesn't have subtree.
+	//case 2. delNode doesn't have two child node
 
 #pragma endregion
 #pragma region Deletenode
-	//case1. terminalNode is red node
-	if (terminalNode->color == red)
+	//case1. succesor is red node
+	if (succesor->color == red)
 	{
-		if (terminalNode->parent->right == terminalNode)
+		if (succesor->parent->right == succesor)
 		{
-			terminalNode->parent->right = nullptr;
-			free(terminalNode);
+			succesor->parent->right = nullptr;
+			free(succesor);
 		}
 		else
 		{
-			terminalNode->parent->left = nullptr;
-			free(terminalNode);
+			succesor->parent->left = nullptr;
+			free(succesor);
 		}
 	}
-	//case2. terminalNode is black node
-	else if (terminalNode->color == black)
+	//case2. succesor is black node
+	else if (succesor->color == black)
 	{
 		//case2-1. parent is red node.
-		if (terminalNode->parent->color == red)
+		if (succesor->parent->color == red)
 		{
-			if (terminalNode->parent->right == terminalNode)
+			if (succesor->parent->right == succesor)
 			{
-				RBnode* parent = terminalNode->parent;
-				parent->right = nullptr;
-				free(terminalNode);
+				RBnode* parent = succesor->parent;
+				if (succesor->right != nullptr)
+					RBTreeNodeHandler::ChangeRightSubTree(parent, succesor->right);
+				else
+					RBTreeNodeHandler::ChangeRightSubTree(parent, succesor->left);
+				free(succesor);
 
 				parent->color = black;
 				if (parent->left != nullptr)
@@ -334,9 +319,12 @@ bool RBTree::Delete(TData _data)
 			}
 			else
 			{
-				RBnode* parent = terminalNode->parent;
-				parent->left = nullptr;
-				free(terminalNode);
+				RBnode* parent = succesor->parent;
+				if (succesor->right != nullptr)
+					RBTreeNodeHandler::ChangeLeftSubTree(parent, succesor->right);
+				else
+					RBTreeNodeHandler::ChangeLeftSubTree(parent, succesor->left);
+				free(succesor);
 
 				parent->color = black;
 				if (parent->right != nullptr)
@@ -357,143 +345,251 @@ bool RBTree::Delete(TData _data)
 			}
 		}
 		//case2-2. parent is black node
-		else if (terminalNode->parent->color == black)
+		else if (succesor->parent->color == black)
 		{
-			RBnode* parent = terminalNode->parent;
-			TData delNodedata = terminalNode->data;
-
-			//adjust black-height
-			if (parent->right == terminalNode)
+			RBnode* parent = succesor->parent;
+			TData delNodedata = succesor->data;
+			
+			if (parent->right == succesor)
 			{
-				RBnode* temp = parent;
-				RBnode* prevnode = terminalNode;
-				while (temp != nullptr)
-				{
-					if (temp->left == prevnode)
-						DecreaseBH(temp->right);
-					else
-						DecreaseBH(temp->left);
+				RBnode* sibling = parent->left;
+				bool BH_Change = false;
 
-					prevnode = temp;
-					temp = temp->parent;
+				//if succesor has red child node.
+				if (succesor->right != nullptr)
+				{
+					if (succesor->right->color == red)
+					{
+						RBTreeNodeHandler::ChangeRightSubTree(parent, succesor->right);
+						succesor->right->color = black;
+					}
 				}
-				parent->right = nullptr;
+				else if (succesor->left != nullptr)
+				{
+					if (succesor->left->color == red)
+					{
+						RBTreeNodeHandler::ChangeRightSubTree(parent, succesor->left);
+						succesor->left->color = black;
+					}
+				}
+				//if sibling is red
+				else if (GetColor(sibling) == red)
+				{
+					parent->right = nullptr;
+					RBnode* sibleft = sibling->left;
+					RBnode* sibright = sibling->right;
+					RBnode* parentOfparent = parent->parent;
+
+					if (parentOfparent->left == parent)
+						RBTreeNodeHandler::ChangeLeftSubTree(parentOfparent,sibling);
+					else
+						RBTreeNodeHandler::ChangeRightSubTree(parentOfparent, sibling);
+
+					RBTreeNodeHandler::ChangeRightSubTree(sibling, parent);
+					RBTreeNodeHandler::ChangeLeftSubTree(parent, sibright);
+					
+					sibling->color = black;
+					sibright->color = red;
+				}
+				else
+				{
+					//if sibling's child is red
+					if (sibling != nullptr)
+					{
+						if (GetColor(sibling->left) == red)	//line
+						{
+							parent->right = nullptr;
+							RBnode* sibleft = sibling->left;
+							RBnode* sibright = sibling->right;
+							RBnode* parentOfparent = parent->parent;
+
+							if (parentOfparent->left == parent)
+								RBTreeNodeHandler::ChangeLeftSubTree(parentOfparent, sibling);
+							else
+								RBTreeNodeHandler::ChangeRightSubTree(parentOfparent, sibling);
+
+							RBTreeNodeHandler::ChangeRightSubTree(sibling, parent);
+							RBTreeNodeHandler::ChangeLeftSubTree(parent, sibright);
+
+							sibleft->color = black;
+						}
+						else if (GetColor(sibling->right) == red)	//triangle
+						{
+							RBnode* A = sibling->right;
+							RBTreeNodeHandler::ChangeLeftSubTree(parent, A);
+							RBTreeNodeHandler::ChangeRightSubTree(sibling, A->left);
+							RBTreeNodeHandler::ChangeLeftSubTree(A, sibling);
+
+							A->color = black;
+							sibling->color = red;
+
+							//line
+							parent->right = nullptr;
+							RBnode* sibleft = A->left;
+							RBnode* sibright = A->right;
+							RBnode* parentOfparent = parent->parent;
+
+							if (parentOfparent->left == parent)
+								RBTreeNodeHandler::ChangeLeftSubTree(parentOfparent, A);
+							else
+								RBTreeNodeHandler::ChangeRightSubTree(parentOfparent, A);
+
+							RBTreeNodeHandler::ChangeRightSubTree(A, parent);
+							RBTreeNodeHandler::ChangeLeftSubTree(parent, sibright);
+
+							sibleft->color = black;
+						}
+						else
+							BH_Change = true;
+					}
+					else
+						BH_Change = true;
+
+					//if black height must be changed.
+					if (BH_Change)
+					{
+						//adjust black-height
+						RBnode* temp = parent;
+						RBnode* prevnode = succesor;
+						while (temp != nullptr)
+						{
+							if (temp->left == prevnode)
+								DecreaseBH(temp->right);
+							else
+								DecreaseBH(temp->left);
+
+							prevnode = temp;
+							temp = temp->parent;
+						}
+						parent->right = nullptr;
+						DecreaseBH_DoubleRedCheck(delNodedata);
+					}
+				}
 			}
 			else
 			{
-				RBnode* temp = parent;
-				RBnode* prevnode = terminalNode;
+				RBnode* sibling = parent->right;
+				bool BH_Change = false;
 
-				while (temp != nullptr)
+				//if succesor has red child node.
+				if (succesor->right != nullptr)
 				{
-					if (temp->left == prevnode)
-						DecreaseBH(temp->right);
+					if (succesor->right->color == red)
+					{
+						RBTreeNodeHandler::ChangeLeftSubTree(parent, succesor->right);
+						succesor->right->color = black;
+					}
+				}
+				else if (succesor->left != nullptr)
+				{
+					if (succesor->left->color == red)
+					{
+						RBTreeNodeHandler::ChangeLeftSubTree(parent, succesor->left);
+						succesor->left->color = black;
+					}
+				}
+				//if sibling is red
+				else if (GetColor(sibling) == red)
+				{
+					parent->left = nullptr;
+					RBnode* sibleft = sibling->left;
+					RBnode* sibright = sibling->right;
+					RBnode* parentOfparent = parent->parent;
+
+					if (parentOfparent->left == parent)
+						RBTreeNodeHandler::ChangeLeftSubTree(parentOfparent, sibling);
 					else
-						DecreaseBH(temp->left);
+						RBTreeNodeHandler::ChangeRightSubTree(parentOfparent, sibling);
 
-					prevnode = temp;
-					temp = temp->parent;
+					RBTreeNodeHandler::ChangeLeftSubTree(sibling, parent);
+					RBTreeNodeHandler::ChangeRightSubTree(parent, sibleft);
+
+					sibling->color = black;
+					sibleft->color = red;
 				}
-				parent->left = nullptr;
-			}
-			if (terminalNode == root)
-				root = nullptr;
-			free(terminalNode);
-
-			//Double-red check
-			RBnode* temp = root;
-			while (temp != nullptr)
-			{
-				if (temp->data > delNodedata)	//right direction
-				{
-					if (temp->color == red)
-					{
-						if (temp->right != nullptr)
-						{
-							if (temp->right->color == red)
-							{
-								RBnode* tempParent = temp->parent;
-								FixDoubleRed(temp, temp->right);
-
-								//fix location of temp
-								temp = tempParent;		
-
-								if (temp->data > delNodedata)
-									temp = temp->left;
-								else
-									temp = temp->right;
-							}
-						}
-					}
-					else if (temp->right != nullptr)
-					{
-						bool leftcheck = true;
-						if (temp->right->color == red)
-						{
-							if (temp->right->right != nullptr)
-							{
-								if (temp->right->right->color == red)
-								{
-									leftcheck = false;
-									FixDoubleRed(temp->right, temp->right->right);
-								}
-							}
-							else if (temp->right->left != nullptr && leftcheck == true)
-							{
-								if (temp->right->left->color == red)
-									FixDoubleRed(temp->right, temp->right->left);
-							}
-						}
-					}
-				}
-				else			//left direction
-				{
-					if (temp->color == red)
-					{
-						if (temp->left != nullptr)
-						{
-							if (temp->left->color == red)
-							{
-								RBnode* tempParent = temp->parent;
-								FixDoubleRed(temp, temp->left);
-
-								//fix location of temp
-								temp = tempParent;
-
-								if (temp->data > delNodedata)
-									temp = temp->left;
-								else
-									temp = temp->right;
-							}
-						}
-					}
-					else if (temp->left != nullptr)
-					{
-						bool rightcheck = true;
-						if (temp->left->color == red)
-						{
-							if (temp->left->right != nullptr)
-							{
-								if (temp->left->right->color == red)
-								{
-									FixDoubleRed(temp->left, temp->left->right);
-									rightcheck = false;
-								}
-							}
-							else if (temp->left->left != nullptr && rightcheck == true)
-							{
-								if (temp->left->left->color == red)
-									FixDoubleRed(temp->left, temp->left->left);
-							}
-						}
-					}
-				}
-
-				if (temp->data > delNodedata)
-					temp = temp->left;
 				else
-					temp = temp->right;
+				{
+					//if sibling's child is red
+					if (sibling != nullptr)
+					{
+						if (GetColor(sibling->right) == red)	//line
+						{
+							parent->left = nullptr;
+							RBnode* sibleft = sibling->left;
+							RBnode* sibright = sibling->right;
+							RBnode* parentOfparent = parent->parent;
+
+							if (parentOfparent->left == parent)
+								RBTreeNodeHandler::ChangeLeftSubTree(parentOfparent, sibling);
+							else
+								RBTreeNodeHandler::ChangeRightSubTree(parentOfparent, sibling);
+
+							RBTreeNodeHandler::ChangeLeftSubTree(sibling, parent);
+							RBTreeNodeHandler::ChangeRightSubTree(parent, sibleft);
+
+							sibright->color = black;
+						}
+						else if (GetColor(sibling->left) == red)	//triangle
+						{
+							RBnode* A = sibling->left;
+							RBTreeNodeHandler::ChangeRightSubTree(parent, A);
+							RBTreeNodeHandler::ChangeLeftSubTree(sibling, A->right);
+							RBTreeNodeHandler::ChangeRightSubTree(A, sibling);
+
+							A->color = black;
+							sibling->color = red;
+
+							//line
+							parent->left = nullptr;
+							RBnode* sibleft = A->left;
+							RBnode* sibright = A->right;
+							RBnode* parentOfparent = parent->parent;
+
+							if (parentOfparent->left == parent)
+								RBTreeNodeHandler::ChangeLeftSubTree(parentOfparent, A);
+							else
+								RBTreeNodeHandler::ChangeRightSubTree(parentOfparent, A);
+
+							RBTreeNodeHandler::ChangeLeftSubTree(A, parent);
+							RBTreeNodeHandler::ChangeRightSubTree(parent, sibleft);
+
+							sibright->color = black;
+						}
+						else
+							BH_Change = true;
+					}
+					else
+						BH_Change = true;
+
+					//if black height must be changed.
+					if (BH_Change)
+					{
+						//adjust black-height
+						RBnode* temp = parent;
+						RBnode* prevnode = succesor;
+
+						while (temp != nullptr)
+						{
+							if (temp->left == prevnode)
+								DecreaseBH(temp->right);
+							else
+								DecreaseBH(temp->left);
+
+							prevnode = temp;
+							temp = temp->parent;
+						}
+						parent->left = nullptr;
+						DecreaseBH_DoubleRedCheck(delNodedata);
+					}
+				}
 			}
+
+			if (succesor == root)
+				root = nullptr;
+			free(succesor);
+
+			if (Vroot->right != root)
+				root = Vroot->right;
 		}
 	}
 #pragma endregion
@@ -513,6 +609,111 @@ void RBTree::DecreaseBH(RBnode * _node)
 		DecreaseBH(_node->left);
 		DecreaseBH(_node->right);
 	}
+}
+
+void RBTree::DecreaseBH_DoubleRedCheck(TData delNodedata)
+{
+	RBnode* temp = root;
+	while (temp != nullptr)
+	{
+		if (temp->data > delNodedata)	//right direction
+		{
+			if (temp->color == red)
+			{
+				if (temp->right != nullptr)
+				{
+					if (temp->right->color == red)
+					{
+						RBnode* tempParent = temp->parent;
+						FixDoubleRed(temp, temp->right);
+
+						//fix location of temp
+						temp = tempParent;
+
+						if (temp->data > delNodedata)
+							temp = temp->left;
+						else
+							temp = temp->right;
+					}
+				}
+			}
+			else if (temp->right != nullptr)
+			{
+				bool leftcheck = true;
+				if (temp->right->color == red)
+				{
+					if (temp->right->right != nullptr)
+					{
+						if (temp->right->right->color == red)
+						{
+							leftcheck = false;
+							FixDoubleRed(temp->right, temp->right->right);
+						}
+					}
+					else if (temp->right->left != nullptr && leftcheck == true)
+					{
+						if (temp->right->left->color == red)
+							FixDoubleRed(temp->right, temp->right->left);
+					}
+				}
+			}
+		}
+		else			//left direction
+		{
+			if (temp->color == red)
+			{
+				if (temp->left != nullptr)
+				{
+					if (temp->left->color == red)
+					{
+						RBnode* tempParent = temp->parent;
+						FixDoubleRed(temp, temp->left);
+
+						//fix location of temp
+						temp = tempParent;
+
+						if (temp->data > delNodedata)
+							temp = temp->left;
+						else
+							temp = temp->right;
+					}
+				}
+			}
+			else if (temp->left != nullptr)
+			{
+				bool rightcheck = true;
+				if (temp->left->color == red)
+				{
+					if (temp->left->right != nullptr)
+					{
+						if (temp->left->right->color == red)
+						{
+							FixDoubleRed(temp->left, temp->left->right);
+							rightcheck = false;
+						}
+					}
+					else if (temp->left->left != nullptr && rightcheck == true)
+					{
+						if (temp->left->left->color == red)
+							FixDoubleRed(temp->left, temp->left->left);
+					}
+				}
+			}
+		}
+
+		if (temp->data > delNodedata)
+			temp = temp->left;
+		else
+			temp = temp->right;
+	}
+}
+
+COLOR RBTree::GetColor(RBnode * _node)
+{
+	if (_node == nullptr)
+		return black;
+	else
+		return _node->color;
 }
 
 void RBTree::ShowTree()

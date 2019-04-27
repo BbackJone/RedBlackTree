@@ -19,6 +19,8 @@ public:
 	bool Delete(TData _data);		//delete node that has _data
 	//Utility function of delete
 	void DecreaseBH(RBnode* _node);
+	void DecreaseBH_DoubleRedCheck(TData delNodedata);
+	COLOR GetColor(RBnode* _node);
 
 	RBnode* GetRoot() { return root; }
 
